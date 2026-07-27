@@ -82,13 +82,13 @@ Healthcare Recommendation Agent
 ```text
 Trustworthy-Agentic-AI-for-Healthcare/
 
-│── dataset/
+│── data/
 │── notebooks/
 │── src/
 │── agents/
 │── models/
 │── reports/
-│── figures/
+│── images/
 │── results/
 │── requirements.txt
 │── README.md
