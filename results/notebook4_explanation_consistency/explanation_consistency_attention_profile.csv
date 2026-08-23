@@ -1,0 +1,21 @@
+global_SHAP_rank,processed_feature,mean_abs_shap,multi_instance_local_rank,mean_absolute_local_SHAP,absolute_rank_difference,positive_percentage,negative_percentage,zero_percentage,dominant_direction,directional_stability_percentage,rank_consistency_category,directional_stability_category,overall_consistency_category,explanation_attention_score,explanation_attention_priority
+1,numeric__LBXSGL,0.8158795793128563,2,0.4691306828634055,1,0.0,100.0,0.0,Negative,100.0,Very close,Highly stable,High consistency,0.0375,Low attention
+2,numeric__RIDAGEYR,0.7772739790612941,1,0.9331390996244175,1,60.0,40.0,0.0,Positive,60.0,Very close,Moderately stable,Moderate consistency,0.19750000000000004,Low attention
+3,numeric__LBXGLU,0.27662535496474694,8,0.1399892676962659,5,0.0,100.0,0.0,Negative,100.0,Very close,Highly stable,High consistency,0.1875,Low attention
+4,numeric__WTMECPRP,0.25385762626866853,7,0.16627017009082862,3,100.0,0.0,0.0,Positive,100.0,Very close,Highly stable,High consistency,0.11249999999999999,Low attention
+5,numeric__BMXWT,0.24314550291312045,3,0.26511074127399537,2,20.0,80.0,0.0,Negative,80.0,Very close,Stable,High consistency,0.15499999999999997,Low attention
+6,numeric__LBXSTR,0.2059092346363182,6,0.16948110290747237,0,0.0,100.0,0.0,Negative,100.0,Exact rank match,Highly stable,High consistency,0.0,Low attention
+7,numeric__LBXSCH,0.19431264520873695,17,0.04537422442086299,10,100.0,0.0,0.0,Positive,100.0,Close,Highly stable,Moderate consistency,0.375,Moderate attention
+8,numeric__BMXWAIST,0.18339841553404027,4,0.22377516083603557,4,60.0,40.0,0.0,Positive,60.0,Very close,Moderately stable,Moderate consistency,0.31000000000000005,Moderate attention
+9,numeric__WTINTPRP,0.18038218170742673,9,0.12505239713432742,0,20.0,80.0,0.0,Negative,80.0,Exact rank match,Stable,High consistency,0.07999999999999999,Low attention
+10,numeric__LBXSAPSI,0.1712929971010792,5,0.1757429542859499,5,80.0,20.0,0.0,Positive,80.0,Very close,Stable,High consistency,0.26749999999999996,Low attention
+11,numeric__URXCRS,0.15944378861632455,12,0.05417684689183607,1,60.0,40.0,0.0,Positive,60.0,Very close,Moderately stable,Moderate consistency,0.19750000000000004,Low attention
+12,numeric__LBXSIR,0.11221213693962331,11,0.07331138149993024,1,80.0,20.0,0.0,Positive,80.0,Very close,Stable,High consistency,0.1175,Low attention
+13,numeric__LBXTR,0.10230860646329624,10,0.09514418782463102,3,100.0,0.0,0.0,Positive,100.0,Very close,Highly stable,High consistency,0.11249999999999999,Low attention
+14,numeric__LBXSGTSI,0.08632617955207646,18,0.04531475482523961,4,0.0,100.0,0.0,Negative,100.0,Very close,Highly stable,High consistency,0.15,Low attention
+15,numeric__LBXTC,0.08520143484671706,26,0.02198015681188278,11,100.0,0.0,0.0,Positive,100.0,Moderate difference,Highly stable,Lower consistency,0.4125,Moderate attention
+16,numeric__BMXHIP,0.06532181334278667,14,0.050272404220452815,2,80.0,20.0,0.0,Positive,80.0,Very close,Stable,High consistency,0.15499999999999997,Low attention
+17,numeric__BPXODI3,0.060279010184948245,33,0.015801039010428817,16,40.0,60.0,0.0,Negative,60.0,Moderate difference,Moderately stable,Lower consistency,0.76,High attention
+18,numeric__BPXOSY1,0.05889214162592414,16,0.045971278133506696,2,0.0,40.0,60.0,Negative,40.0,Very close,Unstable,Lower consistency,0.315,Moderate attention
+19,numeric__BPXODI2,0.056777317017171675,28,0.018318844950788844,9,40.0,60.0,0.0,Negative,60.0,Close,Moderately stable,Moderate consistency,0.4975,Moderate attention
+20,numeric__BPXODI1,0.0530714235998306,29,0.018232832623447964,9,40.0,60.0,0.0,Negative,60.0,Close,Moderately stable,Moderate consistency,0.4975,Moderate attention
