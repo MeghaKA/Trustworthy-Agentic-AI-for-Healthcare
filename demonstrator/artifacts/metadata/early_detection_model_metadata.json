@@ -1,0 +1,30 @@
+{
+    "threshold_information": {
+        "model": "Early-Detection Logistic Regression",
+        "threshold": 0.35,
+        "threshold_selection_method": "5-fold out-of-fold training predictions",
+        "target_sensitivity": 0.75,
+        "test_set_used_for_threshold_selection": false
+    },
+    "test_metrics": {
+        "accuracy": 0.8394745273950657,
+        "precision": 0.7032495401594114,
+        "sensitivity": 0.6888888888888889,
+        "specificity": 0.8942538780860826,
+        "f1_score": 0.695995145631068,
+        "roc_auc": 0.9008532675126514,
+        "pr_auc": 0.7662478009065461,
+        "true_negatives": 4093,
+        "false_positives": 484,
+        "false_negatives": 518,
+        "true_positives": 1147
+    },
+    "training_rows": 25227,
+    "testing_rows": 6242,
+    "training_participants": 11755,
+    "testing_participants": 2939,
+    "participant_overlap": 0,
+    "raw_features": 214,
+    "processed_features": 517,
+    "high_confidence_proxies_excluded": 22
+}
