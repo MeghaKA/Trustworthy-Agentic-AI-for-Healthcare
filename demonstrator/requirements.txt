@@ -1,0 +1,19 @@
+# Trustworthy Multi-Agent Healthcare AI Demonstrator — Phase 1 dependencies
+#
+# scikit-learn is pinned to 1.6.1 because the locked NB3 model and
+# preprocessor .joblib artifacts were serialized under scikit-learn 1.6.1.
+# Loading them under a different minor version (verified: 1.8.0) raises
+# AttributeError: Can't get attribute '_RemainderColsList' on
+# sklearn.compose._column_transformer. This pin is a hard governance
+# requirement, not a convenience choice — do not relax it.
+#
+# joblib, pandas, and numpy versions below were the versions actually used
+# to verify that the locked artifacts load successfully under
+# scikit-learn==1.6.1 in this environment. If you upgrade them, re-run
+# tests/test_model_integrity.py before trusting the result.
+
+streamlit>=1.36
+scikit-learn==1.6.1
+joblib==1.5.3
+pandas==3.0.2
+numpy==2.4.4
