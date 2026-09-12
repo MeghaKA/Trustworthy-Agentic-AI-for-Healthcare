@@ -1,1 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
 
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+
+# Local secrets
+.env
+.env.*
+
+# Local/raw research datasets
+*.xpt
+*.XPT
+*.csv
+*.parquet
+
+# Local patient-level data
+data/
