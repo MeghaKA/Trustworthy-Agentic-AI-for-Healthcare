@@ -1,0 +1,51 @@
+{
+  "_comment_threshold_source_of_truth": "The locked decision threshold is NOT stored in this file. It is read exclusively from artifacts/metadata/early_detection_model_metadata.json (field: threshold_information.threshold) at runtime, so there is exactly one source of truth for threshold=0.35. Do not add a threshold field here.",
+
+  "project_name": "Trustworthy Multi-Agent Healthcare AI Demonstrator",
+  "research_only_banner": "Research demonstrator — not for clinical use.",
+
+  "authoritative_artifacts": {
+    "tier_1_locked_model": {
+      "description": "NB3 locked logistic regression model. Authoritative, immutable.",
+      "path": "artifacts/model/early_detection_logistic_regression.joblib",
+      "sha256": "b318533623b35b09f38556a5e262213be7b050008eb380ea4b39d1488e996fd1"
+    },
+    "tier_1_locked_preprocessor": {
+      "description": "NB3 locked preprocessing pipeline (ColumnTransformer: SimpleImputer + OneHotEncoder). Authoritative, immutable.",
+      "path": "artifacts/model/early_detection_preprocessor.joblib",
+      "sha256": "9b9edc9ea10b7537839ebc09ba6927e6d1b6b33e6efb727e6ca25a2bb96f7a5e"
+    },
+    "tier_1_model_metadata": {
+      "description": "NB3 authoritative model metadata: locked threshold, feature counts, test metrics.",
+      "path": "artifacts/metadata/early_detection_model_metadata.json"
+    }
+  },
+
+  "hash_verification": {
+    "required_sklearn_version": "1.6.1",
+    "fail_safe_on_mismatch": true,
+    "note": "If recomputed sha256 of either artifact does not exactly match the value recorded above, the application must refuse to construct a usable model bundle and must not proceed to any downstream agent."
+  },
+
+  "agent_execution_order": [
+    "Input/Data Quality Agent",
+    "Prediction Agent",
+    "Explainability Agent",
+    "Trust & Fairness Agent",
+    "Safety Agent",
+    "CDS/Reporting Agent",
+    "Agentic Orchestrator"
+  ],
+
+  "mandatory_safety_control_point": "Safety Agent",
+
+  "governance_notes": [
+    "This is a research-only demonstrator. It is not a clinical deployment system.",
+    "The NB3 model, preprocessor, and threshold are locked and must not be modified, refit, or retrained.",
+    "Missing patient values must never be fabricated or manually imputed for clinical interpretation.",
+    "The exact logistic coefficient contribution decomposition used for explainability is not SHAP and must never be described as SHAP.",
+    "Explanation consistency evidence (NB6) is a trustworthiness signal only, not proof of correctness, causality, clinical validity, fairness, or deployment readiness.",
+    "Population-level trust/fairness evidence (NB5) must never be presented as an individual-level guarantee.",
+    "The Safety Agent is a mandatory control point; downstream agents must not be able to override or bypass its gate."
+  ]
+}
