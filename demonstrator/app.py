@@ -17,6 +17,9 @@ import streamlit as st
 
 from backend.governance import Governance, GovernanceConfigError, load_governance
 from backend.model_loader import ModelBundle, load_model_bundle
+from backend.schema import LockedSchema, SchemaError, load_locked_schema
+from backend.agents.input_quality_agent import InputQualityResult, run_input_quality_agent
+from ui.patient_input_form import render_patient_input_form
 
 
 st.set_page_config(
@@ -58,6 +61,11 @@ def get_model_bundle(_governance: Governance) -> ModelBundle:
     # cache invalidation for this resource is process-lifetime only, which
     # is correct for locked, immutable artifacts.
     return load_model_bundle(_governance)
+
+
+@st.cache_resource(show_spinner="Loading locked 214-feature input schema...")
+def get_schema() -> LockedSchema:
+    return load_locked_schema()
 
 
 def render_integrity_panel(governance: Governance, bundle: ModelBundle) -> None:
@@ -113,16 +121,62 @@ def render_integrity_panel(governance: Governance, bundle: ModelBundle) -> None:
                 st.write(f"- {reason}")
 
 
-def render_agent_pipeline_scaffold(governance: Governance) -> None:
+def render_input_quality_result(result: InputQualityResult) -> None:
+    r = result.as_dict
+
+    st.success("Input/Data Quality Agent executed.")
+
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Model-input completeness", f"{r['data_quality']['completeness']*100:.2f}%")
+    col2.metric(
+        "Clinical measurement completeness",
+        f"{r['clinical_measurements']['completeness']*100:.2f}%",
+    )
+    col3.metric("Quality status", r["data_quality"]["quality_status"])
+
+    st.write(
+        f"**Safety gate:** `{r['decision']['safety_gate']}`  —  "
+        f"prediction_input_valid=`{r['decision']['prediction_input_valid']}`, "
+        f"clinical_interpretation_allowed=`{r['decision']['clinical_interpretation_allowed']}`"
+    )
+
+    if not r["decision"]["clinical_interpretation_allowed"]:
+        st.warning(
+            "Clinical interpretation is blocked for this input. This is "
+            "expected, correct safety behavior when required information "
+            "is missing or incomplete — it is not an error, and no value "
+            "has been invented to work around it."
+        )
+
+    with st.expander("Full structured agent output (JSON contract)"):
+        st.json(r)
+
+    if r["clinical_measurements"]["missing"]:
+        st.write("**Missing prediction-time clinical measurements:**")
+        for feature in r["clinical_measurements"]["missing"]:
+            st.write(f"- `{feature}`")
+
+    st.caption(
+        "Model-input completeness (over all 214 locked features) is "
+        "distinct from clinical-measurement completeness (over the 7 "
+        "prediction-time measurements only) — both are reported "
+        "separately above, exactly as the underlying agent contract "
+        "distinguishes them."
+    )
+
+
+def render_agent_pipeline_scaffold(
+    governance: Governance,
+    input_quality_result: InputQualityResult | None,
+) -> None:
     st.subheader("Seven-Agent Workflow")
     st.caption(
-        "Fixed execution order. Each stage below will be implemented in "
-        "later phases; the order and presence of every stage is fixed now "
-        "and will not change."
+        "Fixed execution order. The order and presence of every stage is "
+        "fixed and will not change across phases."
     )
 
     phase_map = {
-        "Input/Data Quality Agent": "Phase 2 (not yet implemented)",
+        "Input/Data Quality Agent": "Phase 2",
         "Prediction Agent": "Phase 3 (not yet implemented)",
         "Explainability Agent": "Phase 4 (not yet implemented)",
         "Trust & Fairness Agent": "Phase 5 (not yet implemented)",
@@ -132,8 +186,25 @@ def render_agent_pipeline_scaffold(governance: Governance) -> None:
     }
 
     for agent_name in governance.agent_execution_order:
-        with st.expander(f"🔲 {agent_name} — {phase_map.get(agent_name, 'unscheduled')}"):
-            st.write("Not yet implemented in this phase.")
+        is_input_quality = agent_name == "Input/Data Quality Agent"
+        has_result = is_input_quality and input_quality_result is not None
+        icon = "✅" if has_result else "🔲"
+
+        with st.expander(
+            f"{icon} {agent_name} — {phase_map.get(agent_name, 'unscheduled')}",
+            expanded=has_result,
+        ):
+            if is_input_quality:
+                if input_quality_result is not None:
+                    render_input_quality_result(input_quality_result)
+                else:
+                    st.write(
+                        "Not yet executed. Submit the patient input form "
+                        "above to run this agent."
+                    )
+            else:
+                st.write("Not yet implemented in this phase.")
+
             if agent_name == governance.mandatory_safety_control_point:
                 st.info(
                     "This is the mandatory safety control point. Once "
@@ -182,15 +253,40 @@ def main() -> None:
         st.stop()
         return
 
-    st.sidebar.header("Patient Input")
-    st.sidebar.info(
-        "A structured patient-input form will be added in Phase 2 "
-        "(Input/Data Quality Agent). It will map to the locked 214-feature "
-        "NB3 schema without requiring manual entry of all 214 features, and "
-        "will never fabricate or silently impute missing values."
-    )
+    try:
+        schema = get_schema()
+    except SchemaError as exc:
+        st.error(
+            "The locked 214-feature input schema failed to load or "
+            "failed internal consistency validation. The application "
+            "cannot proceed."
+        )
+        st.exception(exc)
+        st.stop()
+        return
 
-    render_agent_pipeline_scaffold(governance)
+    st.sidebar.header("About this demonstrator")
+    st.sidebar.info(
+        "Fill in the patient input form below with whatever information "
+        "is known. Everything is optional — leave fields blank if unknown. "
+        "Blank fields are recorded as missing and will correctly limit or "
+        "block clinical interpretation downstream; nothing is ever "
+        "invented to fill a gap."
+    )
+    st.sidebar.write(f"Locked model input features: **{len(schema.locked_features)}**")
+    st.sidebar.write(f"Prediction-time clinical measurements: **{len(schema.clinical_measurements)}**")
+
+    submitted, patient_record = render_patient_input_form(schema)
+
+    if submitted and patient_record is not None:
+        input_quality_result = run_input_quality_agent(patient_record, schema)
+        st.session_state["input_quality_result"] = input_quality_result
+        st.session_state["patient_record"] = patient_record
+
+    input_quality_result = st.session_state.get("input_quality_result")
+
+    st.divider()
+    render_agent_pipeline_scaffold(governance, input_quality_result)
     render_governance_notes(governance)
 
 
