@@ -1,14 +1,17 @@
 """
 Trustworthy Multi-Agent Healthcare AI Demonstrator — Streamlit app shell.
 
-PHASE 1 SCOPE ONLY:
-  - Persistent research-only banner
-  - Startup governance load + locked-artifact integrity verification
-  - A visible, fixed-order scaffold for the seven agents (placeholders)
+PHASES 1–3 IMPLEMENTED:
+  - Phase 1: Persistent research-only banner, startup governance load,
+    locked-artifact integrity verification.
+  - Phase 2: Structured patient-input form (curated 30-field subset) and
+    the Input/Data Quality Agent (exact NB9 Cell 14 logic).
+  - Phase 3: The Prediction Agent (exact NB9 Cell 15 logic), chained
+    immediately after the Input/Data Quality Agent.
 
-No prediction, explanation, fairness, safety, or reporting logic exists yet.
-Those are added in later phases and will plug into the placeholder sections
-below without changing this file's overall structure.
+Explainability, Trust & Fairness, Safety, CDS/Reporting, and the
+Orchestrator (Phases 4–8) are not yet implemented and remain placeholders
+in the pipeline scaffold below.
 """
 
 from __future__ import annotations
@@ -19,6 +22,7 @@ from backend.governance import Governance, GovernanceConfigError, load_governanc
 from backend.model_loader import ModelBundle, load_model_bundle
 from backend.schema import LockedSchema, SchemaError, load_locked_schema
 from backend.agents.input_quality_agent import InputQualityResult, run_input_quality_agent
+from backend.agents.prediction_agent import PredictionResult, run_prediction_agent
 from ui.patient_input_form import render_patient_input_form
 
 
@@ -165,9 +169,71 @@ def render_input_quality_result(result: InputQualityResult) -> None:
     )
 
 
+def render_prediction_result(result: PredictionResult) -> None:
+    r = result.as_dict
+
+    if not r["prediction"]["prediction_computed"]:
+        st.error(
+            "Prediction Agent did not run. The input failed schema "
+            "validation (invalid or unexpected fields), so no "
+            "preprocessing or model computation was attempted. This is "
+            "expected fail-safe behavior."
+        )
+        with st.expander("Full structured agent output (JSON contract)"):
+            st.json(r)
+        return
+
+    st.success("Prediction Agent executed.")
+
+    st.caption(
+        "The value below is a technical model output only. It is not a "
+        "calibrated individual clinical risk estimate, not a clinical "
+        "diagnosis, and not medical advice."
+    )
+
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Model output (predicted probability)", f"{r['prediction']['predicted_probability']:.4f}")
+    col2.metric("Locked threshold", f"{r['prediction']['threshold']:.2f}")
+    col3.metric("Predicted class", r["prediction"]["prediction_label"])
+
+    st.write(
+        f"**Clinical interpretation allowed (inherited from Input/Data "
+        f"Quality Agent):** `{r['safety_inheritance']['clinical_interpretation_allowed']}`  —  "
+        f"interpretation_status=`{r['safety_inheritance']['interpretation_status']}`"
+    )
+
+    if r["safety_inheritance"]["clinical_interpretation_allowed"]:
+        st.info(
+            "This input was not blocked by the completeness checks used so "
+            "far. That means data completeness alone does not prevent "
+            "downstream components from proceeding — it does NOT mean this "
+            "model output is clinically validated, medically interpretable, "
+            "or suitable for diagnosis or treatment decisions. It remains a "
+            "technical model output. Trust, fairness, and safety evidence "
+            "(Phases 5–6) has not been applied to this specific result yet."
+        )
+    else:
+        st.warning(
+            "Clinical interpretation is blocked for this input (missing or "
+            "incomplete prediction-time clinical measurements). A "
+            "probability was still computed, exactly as the underlying "
+            "agent contract specifies, but it must not be treated as a "
+            "clinical interpretation of any kind."
+        )
+
+    with st.expander("Full structured agent output (JSON contract)"):
+        st.json(r)
+
+    st.caption(
+        "Model class labels (`MODEL_CLASS_0` / `MODEL_CLASS_1`) are kept "
+        "neutral and are not translated into diagnostic language."
+    )
+
+
 def render_agent_pipeline_scaffold(
     governance: Governance,
     input_quality_result: InputQualityResult | None,
+    prediction_result: PredictionResult | None,
 ) -> None:
     st.subheader("Seven-Agent Workflow")
     st.caption(
@@ -177,7 +243,7 @@ def render_agent_pipeline_scaffold(
 
     phase_map = {
         "Input/Data Quality Agent": "Phase 2",
-        "Prediction Agent": "Phase 3 (not yet implemented)",
+        "Prediction Agent": "Phase 3",
         "Explainability Agent": "Phase 4 (not yet implemented)",
         "Trust & Fairness Agent": "Phase 5 (not yet implemented)",
         "Safety Agent": "Phase 6 (not yet implemented) — mandatory control point",
@@ -187,7 +253,10 @@ def render_agent_pipeline_scaffold(
 
     for agent_name in governance.agent_execution_order:
         is_input_quality = agent_name == "Input/Data Quality Agent"
-        has_result = is_input_quality and input_quality_result is not None
+        is_prediction = agent_name == "Prediction Agent"
+        has_result = (is_input_quality and input_quality_result is not None) or (
+            is_prediction and prediction_result is not None
+        )
         icon = "✅" if has_result else "🔲"
 
         with st.expander(
@@ -201,6 +270,15 @@ def render_agent_pipeline_scaffold(
                     st.write(
                         "Not yet executed. Submit the patient input form "
                         "above to run this agent."
+                    )
+            elif is_prediction:
+                if prediction_result is not None:
+                    render_prediction_result(prediction_result)
+                else:
+                    st.write(
+                        "Not yet executed. Submit the patient input form "
+                        "above to run the Input/Data Quality Agent, which "
+                        "this agent runs immediately after."
                     )
             else:
                 st.write("Not yet implemented in this phase.")
@@ -283,10 +361,16 @@ def main() -> None:
         st.session_state["input_quality_result"] = input_quality_result
         st.session_state["patient_record"] = patient_record
 
+        prediction_result = run_prediction_agent(
+            patient_record, schema, bundle, governance, input_quality_result
+        )
+        st.session_state["prediction_result"] = prediction_result
+
     input_quality_result = st.session_state.get("input_quality_result")
+    prediction_result = st.session_state.get("prediction_result")
 
     st.divider()
-    render_agent_pipeline_scaffold(governance, input_quality_result)
+    render_agent_pipeline_scaffold(governance, input_quality_result, prediction_result)
     render_governance_notes(governance)
 
 
