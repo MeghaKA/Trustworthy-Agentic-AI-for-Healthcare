@@ -1,17 +1,20 @@
 """
 Trustworthy Multi-Agent Healthcare AI Demonstrator — Streamlit app shell.
 
-PHASES 1–3 IMPLEMENTED:
+PHASES 1–4 IMPLEMENTED:
   - Phase 1: Persistent research-only banner, startup governance load,
     locked-artifact integrity verification.
   - Phase 2: Structured patient-input form (curated 30-field subset) and
     the Input/Data Quality Agent (exact NB9 Cell 14 logic).
   - Phase 3: The Prediction Agent (exact NB9 Cell 15 logic), chained
     immediately after the Input/Data Quality Agent.
+  - Phase 4: The Explainability Agent (exact NB6 additive logistic
+    coefficient contribution decomposition), chained immediately after
+    the Prediction Agent.
 
-Explainability, Trust & Fairness, Safety, CDS/Reporting, and the
-Orchestrator (Phases 4–8) are not yet implemented and remain placeholders
-in the pipeline scaffold below.
+Trust & Fairness, Safety, CDS/Reporting, and the Orchestrator (Phases
+5–8) are not yet implemented and remain placeholders in the pipeline
+scaffold below.
 """
 
 from __future__ import annotations
@@ -23,6 +26,7 @@ from backend.model_loader import ModelBundle, load_model_bundle
 from backend.schema import LockedSchema, SchemaError, load_locked_schema
 from backend.agents.input_quality_agent import InputQualityResult, run_input_quality_agent
 from backend.agents.prediction_agent import PredictionResult, run_prediction_agent
+from backend.agents.explainability_agent import ExplainabilityResult, run_explainability_agent
 from ui.patient_input_form import render_patient_input_form
 
 
@@ -230,10 +234,88 @@ def render_prediction_result(result: PredictionResult) -> None:
     )
 
 
+def render_explainability_result(result: ExplainabilityResult) -> None:
+    r = result.as_dict
+
+    if not r["explanation"]["explanation_computed"]:
+        st.error(
+            "Explainability Agent did not run. The Prediction Agent did "
+            "not compute a prediction for this input, so no coefficient "
+            "decomposition was attempted. This is expected fail-safe "
+            "behavior."
+        )
+        with st.expander("Full structured agent output (JSON contract)"):
+            st.json(r)
+        return
+
+    st.success("Explainability Agent executed.")
+    st.write(f"**Explanation type:** {r['explanation_method']}")
+    st.caption(r["technical_disclaimer"])
+
+    e = r["explanation"]
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Predicted probability", f"{e['reconstructed_probability']:.4f}")
+    col2.metric("Threshold", f"{e['threshold']:.2f}")
+    col3.metric("Predicted class", "MODEL_CLASS_1" if e["predicted_class"] == 1 else "MODEL_CLASS_0")
+    col4.metric("Reconstruction error", f"{e['reconstruction_error']:.2e}")
+
+    st.write(
+        f"intercept = `{e['intercept']:.6f}`  ·  total logit = `{e['total_logit']:.6f}`  ·  "
+        f"reconstructed logit = `{e['reconstructed_logit']:.6f}`"
+    )
+    st.write(
+        f"Reconstruction within tolerance ({e['reconstruction_tolerance']:.0e}): "
+        f"**{e['reconstruction_within_tolerance']}**  ·  "
+        f"Predicted class consistent with Prediction Agent: "
+        f"**{e['predicted_class_consistent_with_prediction_agent']}**"
+    )
+
+    if not r["safety_inheritance"]["clinical_interpretation_allowed"]:
+        st.warning(
+            "Clinical interpretation remains blocked for this input "
+            "(inherited from the Input/Data Quality and Prediction "
+            "Agents). This is a technical model explanation only."
+        )
+
+    st.markdown("**Top positive model contributions** (toward MODEL_CLASS_1)")
+    pos = r["contributions"]["top_positive"]
+    if pos:
+        st.dataframe(
+            [{"feature": c["feature_label"], "contribution": c["contribution"]} for c in pos],
+            use_container_width=True,
+            hide_index=True,
+        )
+    else:
+        st.write("None.")
+
+    st.markdown("**Top negative model contributions** (toward MODEL_CLASS_0)")
+    neg = r["contributions"]["top_negative"]
+    if neg:
+        st.dataframe(
+            [{"feature": c["feature_label"], "contribution": c["contribution"]} for c in neg],
+            use_container_width=True,
+            hide_index=True,
+        )
+    else:
+        st.write("None.")
+
+    st.caption(
+        f"Showing top {len(pos)} positive and top {len(neg)} negative of "
+        f"{r['contributions']['count']} total transformed-feature "
+        "contributions. A large contribution reflects the model's own "
+        "arithmetic only — it does not by itself indicate clinical "
+        "importance."
+    )
+
+    with st.expander("Full structured agent output (JSON contract)"):
+        st.json(r)
+
+
 def render_agent_pipeline_scaffold(
     governance: Governance,
     input_quality_result: InputQualityResult | None,
     prediction_result: PredictionResult | None,
+    explainability_result: ExplainabilityResult | None,
 ) -> None:
     st.subheader("Seven-Agent Workflow")
     st.caption(
@@ -244,7 +326,7 @@ def render_agent_pipeline_scaffold(
     phase_map = {
         "Input/Data Quality Agent": "Phase 2",
         "Prediction Agent": "Phase 3",
-        "Explainability Agent": "Phase 4 (not yet implemented)",
+        "Explainability Agent": "Phase 4",
         "Trust & Fairness Agent": "Phase 5 (not yet implemented)",
         "Safety Agent": "Phase 6 (not yet implemented) — mandatory control point",
         "CDS/Reporting Agent": "Phase 7 (not yet implemented)",
@@ -254,8 +336,11 @@ def render_agent_pipeline_scaffold(
     for agent_name in governance.agent_execution_order:
         is_input_quality = agent_name == "Input/Data Quality Agent"
         is_prediction = agent_name == "Prediction Agent"
-        has_result = (is_input_quality and input_quality_result is not None) or (
-            is_prediction and prediction_result is not None
+        is_explainability = agent_name == "Explainability Agent"
+        has_result = (
+            (is_input_quality and input_quality_result is not None)
+            or (is_prediction and prediction_result is not None)
+            or (is_explainability and explainability_result is not None)
         )
         icon = "✅" if has_result else "🔲"
 
@@ -279,6 +364,15 @@ def render_agent_pipeline_scaffold(
                         "Not yet executed. Submit the patient input form "
                         "above to run the Input/Data Quality Agent, which "
                         "this agent runs immediately after."
+                    )
+            elif is_explainability:
+                if explainability_result is not None:
+                    render_explainability_result(explainability_result)
+                else:
+                    st.write(
+                        "Not yet executed. Submit the patient input form "
+                        "above to run the earlier agents, which this "
+                        "agent runs immediately after."
                     )
             else:
                 st.write("Not yet implemented in this phase.")
@@ -366,11 +460,19 @@ def main() -> None:
         )
         st.session_state["prediction_result"] = prediction_result
 
+        explainability_result = run_explainability_agent(
+            patient_record, schema, bundle, governance, input_quality_result, prediction_result
+        )
+        st.session_state["explainability_result"] = explainability_result
+
     input_quality_result = st.session_state.get("input_quality_result")
     prediction_result = st.session_state.get("prediction_result")
+    explainability_result = st.session_state.get("explainability_result")
 
     st.divider()
-    render_agent_pipeline_scaffold(governance, input_quality_result, prediction_result)
+    render_agent_pipeline_scaffold(
+        governance, input_quality_result, prediction_result, explainability_result
+    )
     render_governance_notes(governance)
 
 
