@@ -1,0 +1,30 @@
+dimension,indicator,value,unit,evidence,risk_level,interpretation
+Predictive Performance,ROC-AUC,0.9009,score,Held-out test cohort,Low,Strong discrimination between positive and negative cases.
+Predictive Performance,PR-AUC,0.7662,score,Held-out test cohort,Low,Good precision-recall discrimination under class imbalance.
+Predictive Performance,Sensitivity / TPR,0.6889,proportion,Threshold = 0.35,Moderate,Approximately 69% of positive cases were detected.
+Predictive Performance,Specificity / TNR,0.8943,proportion,Threshold = 0.35,Low,Approximately 89% of negative cases were correctly identified.
+Predictive Performance,Precision / PPV,0.7032,proportion,Threshold = 0.35,Moderate,Approximately 70% of positive predictions were correct.
+Predictive Performance,F1-score,0.696,score,Threshold = 0.35,Moderate,Balanced positive-class performance is moderate.
+Error Burden,False Negative Rate,0.3111,proportion,"518 FN / 1,665 positive cases",High,31.11% of positive cases were missed.
+Error Burden,False Positive Rate,0.1057,proportion,"484 FP / 4,577 negative cases",Moderate,10.57% of negative cases were incorrectly classified as positive.
+Error Burden,Overall Error Rate,0.1605,proportion,"1,002 errors / 6,242 test cases",Moderate,Approximately 16% of held-out cases were misclassified.
+Calibration,Brier Score,0.1117,score,Held-out test cohort,Moderate,Probability estimates show calibration limitations.
+Calibration,Mean Absolute Calibration Gap,0.0524,absolute probability gap,10-bin calibration analysis,Moderate,Observed calibration deviations warrant monitoring.
+Calibration,Maximum Calibration Gap,0.1483,absolute probability gap,10-bin calibration analysis,High,Some probability ranges show substantial miscalibration.
+Confidence Safety,High-confidence errors,161,cases,Confidence >= 0.80,High,Some incorrect predictions were made with high classification confidence.
+Confidence Safety,High-confidence false negatives,101,cases,Confidence >= 0.80,High,Confidently incorrect negative predictions require safety review.
+Confidence Safety,High-confidence false positives,60,cases,Confidence >= 0.80,Moderate,Confident false-positive predictions may generate unnecessary follow-up.
+Fairness — Sex,TPR disparity,0.0494,percentage-point gap,Female vs Male,Low–Moderate,Observed sensitivity difference between female and male groups is relatively small.
+Fairness — Sex,FPR disparity,0.0416,percentage-point gap,Female vs Male,Low–Moderate,Observed false-positive-rate difference is relatively small.
+Fairness — Age,Adult TPR disparity,0.3232,percentage-point gap,18–44 vs 45–64 vs 65+,High,Substantial observed sensitivity differences exist across adult age groups.
+Fairness — Age,Adult FPR disparity,0.2122,percentage-point gap,18–44 vs 45–64 vs 65+,High,False-positive rates vary substantially across adult age groups.
+Fairness — Age,<18 positive-case count,5,positive cases,Held-out test cohort,High,The <18 subgroup has too few positive cases for stable primary fairness inference.
+Fairness — Race/Ethnicity,TPR disparity,0.1685,percentage-point gap,Six race/ethnicity groups,Moderate,Meaningful observed differences in sensitivity exist across groups.
+Fairness — Race/Ethnicity,PPV disparity,0.2221,percentage-point gap,Six race/ethnicity groups,High,Positive predictive value varies substantially between groups.
+Fairness — Race/Ethnicity,F1 disparity,0.1856,percentage-point gap,Six race/ethnicity groups,Moderate,Overall positive-class performance differs across groups.
+Safety,High-concern false negatives,154,cases,Actual positive with predicted probability < 0.15,High,Some positive cases received particularly low predicted probabilities.
+Safety,High-review false positives,127,cases,Actual negative with predicted probability >= 0.75,Moderate,Some negative cases received relatively high predicted probabilities.
+Statistical Robustness,Bootstrap repetitions,2000,bootstrap samples,Held-out test cohort,Low,Bootstrap uncertainty intervals were estimated for key metrics.
+Statistical Robustness,ROC-AUC bootstrap 95% CI,0.8928–0.9082,95% CI,"2,000 bootstrap samples",Low,Discrimination remained strong across bootstrap resamples.
+Statistical Robustness,Sensitivity bootstrap 95% CI,0.6675–0.7106,95% CI,"2,000 bootstrap samples",Moderate,Sensitivity uncertainty is quantified on the held-out cohort.
+Deployment Readiness,Clinical deployment readiness,Not deployment-ready,assessment,Integrated NB5 assessment,High,"External validation, clinical validation, subgroup investigation, calibration improvement, and prospective assessment remain necessary."

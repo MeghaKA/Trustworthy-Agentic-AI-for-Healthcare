@@ -1,0 +1,12 @@
+evidence_code,dimension,indicator,value,unit,assessment,status
+EC-01,Patient-level explanation consistency,Features appearing in ≥90% of patient top-10 explanations,7.0,features,Strong recurring explanation structure,Strong
+EC-02,Pairwise explanation consistency,Mean pairwise explanation cosine similarity,0.9688455946674275,cosine similarity,High overall explanation similarity,Strong
+EC-03,Pairwise explanation consistency,Pairs with ≥80% top-10 overlap,96.81936387277456,% of pairs,High proportion of strongly overlapping explanations,Strong
+EC-04,Pairwise explanation consistency,Pairs with ≥90% top-10 overlap,68.13362672534507,% of pairs,Substantial high-overlap subset,Strong
+EC-05,Confidence dependence,Prediction confidence vs explanation cosine Spearman correlation,-0.2225024593004308,Spearman ρ,Explanation consistency is not strongly determined by prediction confidence,Nuanced
+EC-06,Controlled perturbation stability,5% perturbation mean explanation cosine,0.9999544608129576,cosine similarity,Very high local explanation stability,Strong
+EC-07,Controlled perturbation stability,20% perturbation mean explanation cosine,0.9992773092108136,cosine similarity,Very high stability under stronger stress testing,Strong
+EC-08,Controlled perturbation stability,20% perturbation mean top-10 overlap,97.39,%,Explanation ranking remains highly stable,Strong
+EC-09,Feature-level consistency,Features maintaining ≥90% top-10 consistency across ALL perturbation levels,7.0,features,Persistent explanatory core identified,Strong
+EC-10,Patient-similarity dependence,Patient profile similarity vs explanation cosine Spearman correlation,0.1407260685925251,Spearman ρ,Only weak association with patient similarity,Supporting evidence
+EC-11,Patient-similarity dependence,Patient similarity association p-value,2.157275705522212e-45,p-value,Statistically detectable association but weak effect size,Exploratory
