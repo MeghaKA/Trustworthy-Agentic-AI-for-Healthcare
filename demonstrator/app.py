@@ -15,9 +15,15 @@ PHASES 1–4 IMPLEMENTED:
     population-level evidence; live single-input evaluation always
     reported as unavailable), chained immediately after the
     Explainability Agent.
+  - Phase 6: The Safety Agent (deterministic governance control point;
+    inherits and can only tighten upstream flags; distinguishes
+    observed/missing/imputed inputs), chained immediately after the
+    Trust/Fairness Agent. Its flags now gate what the Prediction and
+    Explainability sections display, so it cannot be bypassed through
+    the normal UI workflow.
 
-Safety, CDS/Reporting, and the Orchestrator (Phases 6–8) are not yet
-implemented and remain placeholders in the pipeline scaffold below.
+CDS/Reporting and the Orchestrator (Phases 7–8) are not yet implemented
+and remain placeholders in the pipeline scaffold below.
 """
 
 from __future__ import annotations
@@ -31,6 +37,7 @@ from backend.agents.input_quality_agent import InputQualityResult, run_input_qua
 from backend.agents.prediction_agent import PredictionResult, run_prediction_agent
 from backend.agents.explainability_agent import ExplainabilityResult, run_explainability_agent
 from backend.agents.trust_fairness_agent import TrustFairnessResult, run_trust_fairness_agent
+from backend.agents.safety_agent import SafetyResult, run_safety_agent
 from ui.patient_input_form import render_patient_input_form
 
 
@@ -177,7 +184,7 @@ def render_input_quality_result(result: InputQualityResult) -> None:
     )
 
 
-def render_prediction_result(result: PredictionResult) -> None:
+def render_prediction_result(result: PredictionResult, safety_result: SafetyResult | None = None) -> None:
     r = result.as_dict
 
     if not r["prediction"]["prediction_computed"]:
@@ -186,6 +193,19 @@ def render_prediction_result(result: PredictionResult) -> None:
             "validation (invalid or unexpected fields), so no "
             "preprocessing or model computation was attempted. This is "
             "expected fail-safe behavior."
+        )
+        with st.expander("Full structured agent output (JSON contract)"):
+            st.json(r)
+        return
+
+    # Safety Agent is the final, authoritative gate (Phase 6). It can only
+    # tighten this section's own flags, never loosen them, but this check
+    # ensures the Safety Agent's decision cannot be bypassed even if it
+    # somehow disagreed with this agent's own flag.
+    if safety_result is not None and not safety_result.technical_prediction_allowed:
+        st.error(
+            "Safety Agent has blocked technical prediction display for "
+            f"this input (`{safety_result.safety_decision}`)."
         )
         with st.expander("Full structured agent output (JSON contract)"):
             st.json(r)
@@ -204,21 +224,26 @@ def render_prediction_result(result: PredictionResult) -> None:
     col2.metric("Locked threshold", f"{r['prediction']['threshold']:.2f}")
     col3.metric("Predicted class", r["prediction"]["prediction_label"])
 
+    clinical_allowed = (
+        safety_result.clinical_interpretation_allowed
+        if safety_result is not None
+        else r["safety_inheritance"]["clinical_interpretation_allowed"]
+    )
+
     st.write(
-        f"**Clinical interpretation allowed (inherited from Input/Data "
-        f"Quality Agent):** `{r['safety_inheritance']['clinical_interpretation_allowed']}`  —  "
+        f"**Clinical interpretation allowed "
+        f"(Safety Agent, Phase 6, authoritative):** `{clinical_allowed}`  —  "
         f"interpretation_status=`{r['safety_inheritance']['interpretation_status']}`"
     )
 
-    if r["safety_inheritance"]["clinical_interpretation_allowed"]:
+    if clinical_allowed:
         st.info(
             "This input was not blocked by the completeness checks used so "
             "far. That means data completeness alone does not prevent "
             "downstream components from proceeding — it does NOT mean this "
             "model output is clinically validated, medically interpretable, "
             "or suitable for diagnosis or treatment decisions. It remains a "
-            "technical model output. Trust, fairness, and safety evidence "
-            "(Phases 5–6) has not been applied to this specific result yet."
+            "technical model output."
         )
     else:
         st.warning(
@@ -238,7 +263,7 @@ def render_prediction_result(result: PredictionResult) -> None:
     )
 
 
-def render_explainability_result(result: ExplainabilityResult) -> None:
+def render_explainability_result(result: ExplainabilityResult, safety_result: SafetyResult | None = None) -> None:
     r = result.as_dict
 
     if not r["explanation"]["explanation_computed"]:
@@ -252,9 +277,24 @@ def render_explainability_result(result: ExplainabilityResult) -> None:
             st.json(r)
         return
 
+    # Safety Agent is the final, authoritative gate (Phase 6).
+    if safety_result is not None and not safety_result.technical_explanation_allowed:
+        st.error(
+            "Safety Agent has blocked technical explanation display for "
+            f"this input (`{safety_result.safety_decision}`)."
+        )
+        with st.expander("Full structured agent output (JSON contract)"):
+            st.json(r)
+        return
+
     st.success("Explainability Agent executed.")
     st.write(f"**Explanation type:** {r['explanation_method']}")
     st.caption(r["technical_disclaimer"])
+    st.caption(
+        "Contributions shown below are model contributions only — "
+        "coefficient × transformed feature value. They are not clinical "
+        "risk factors, causes of disease, or treatment guidance."
+    )
 
     e = r["explanation"]
     col1, col2, col3, col4 = st.columns(4)
@@ -274,12 +314,22 @@ def render_explainability_result(result: ExplainabilityResult) -> None:
         f"**{e['predicted_class_consistent_with_prediction_agent']}**"
     )
 
-    if not r["safety_inheritance"]["clinical_interpretation_allowed"]:
+    clinical_allowed = (
+        safety_result.clinical_interpretation_allowed
+        if safety_result is not None
+        else r["safety_inheritance"]["clinical_interpretation_allowed"]
+    )
+    if not clinical_allowed:
         st.warning(
             "Clinical interpretation remains blocked for this input "
-            "(inherited from the Input/Data Quality and Prediction "
-            "Agents). This is a technical model explanation only."
+            "(Safety Agent, Phase 6, authoritative). This is a technical "
+            "model explanation only."
         )
+
+    if safety_result is not None:
+        note = safety_result.as_dict["input_observation_summary"]["contribution_audit_note"]
+        if note:
+            st.warning(note)
 
     st.markdown("**Top positive model contributions** (toward MODEL_CLASS_1)")
     pos = r["contributions"]["top_positive"]
@@ -397,12 +447,81 @@ def render_trust_fairness_result(result: TrustFairnessResult) -> None:
         st.json(r)
 
 
+def render_safety_result(result: SafetyResult) -> None:
+    r = result.as_dict
+
+    decision_display = {
+        "BLOCK": st.error,
+        "TECHNICAL_ONLY": st.warning,
+        "CLINICAL_INTERPRETATION_GATE_PASSED": st.success,
+    }.get(r["safety_decision"], st.info)
+    decision_display(f"**Safety decision:** `{r['safety_decision']}`")
+
+    if r["clinical_gate_disclaimer"]:
+        st.caption(r["clinical_gate_disclaimer"])
+
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Technical prediction allowed", str(r["technical_prediction_allowed"]))
+    col2.metric("Technical explanation allowed", str(r["technical_explanation_allowed"]))
+    col3.metric("Clinical interpretation allowed", str(r["clinical_interpretation_allowed"]))
+
+    st.markdown("**Reason codes**")
+    for code in r["reason_codes"]:
+        st.write(f"- `{code}`")
+
+    st.markdown("**Observed vs. missing input summary**")
+    summary = r["input_observation_summary"]
+    st.write(
+        f"Raw features observed: **{summary['observed_count']} / "
+        f"{summary['total_raw_features']}** "
+        f"(missing: {summary['missing_count']})"
+    )
+    if summary["contribution_audit_note"]:
+        st.warning(summary["contribution_audit_note"])
+    if summary["contribution_observation_audit"]:
+        with st.expander(
+            f"Top-Contribution Audit — NOT exhaustive "
+            f"(top {summary['contribution_audit_limit']} of "
+            f"{summary['total_transformed_features']} transformed features)"
+        ):
+            st.dataframe(
+                [
+                    {
+                        "feature": c["feature_label"],
+                        "raw_input_status": c["raw_input_status"],
+                        "contribution_value_status": c["contribution_value_status"],
+                        "contribution": c["contribution"],
+                    }
+                    for c in summary["contribution_observation_audit"]
+                ],
+                use_container_width=True,
+                hide_index=True,
+            )
+
+    st.markdown("**Population evidence status**")
+    pop = r["population_evidence_status"]
+    st.write(
+        f"This session: `{pop['current_session_status']}`  ·  "
+        f"Static reference: `{pop['static_reference_status']}`"
+    )
+    for b in pop["boundaries"]:
+        st.caption(f"- {b}")
+
+    st.markdown("**Explanation interpretation boundaries**")
+    for b in r["explanation_interpretation_status"]["boundaries"]:
+        st.caption(f"- {b}")
+
+    with st.expander("Full structured agent output (JSON contract)"):
+        st.json(r)
+
+
 def render_agent_pipeline_scaffold(
     governance: Governance,
     input_quality_result: InputQualityResult | None,
     prediction_result: PredictionResult | None,
     explainability_result: ExplainabilityResult | None,
     trust_fairness_result: TrustFairnessResult | None,
+    safety_result: SafetyResult | None,
 ) -> None:
     st.subheader("Seven-Agent Workflow")
     st.caption(
@@ -415,7 +534,7 @@ def render_agent_pipeline_scaffold(
         "Prediction Agent": "Phase 3",
         "Explainability Agent": "Phase 4",
         "Trust & Fairness Agent": "Phase 5",
-        "Safety Agent": "Phase 6 (not yet implemented) — mandatory control point",
+        "Safety Agent": "Phase 6 — mandatory control point",
         "CDS/Reporting Agent": "Phase 7 (not yet implemented)",
         "Agentic Orchestrator": "Phase 8 (not yet implemented)",
     }
@@ -425,11 +544,13 @@ def render_agent_pipeline_scaffold(
         is_prediction = agent_name == "Prediction Agent"
         is_explainability = agent_name == "Explainability Agent"
         is_trust_fairness = agent_name == "Trust & Fairness Agent"
+        is_safety = agent_name == "Safety Agent"
         has_result = (
             (is_input_quality and input_quality_result is not None)
             or (is_prediction and prediction_result is not None)
             or (is_explainability and explainability_result is not None)
             or (is_trust_fairness and trust_fairness_result is not None)
+            or (is_safety and safety_result is not None)
         )
         icon = "✅" if has_result else "🔲"
 
@@ -447,7 +568,7 @@ def render_agent_pipeline_scaffold(
                     )
             elif is_prediction:
                 if prediction_result is not None:
-                    render_prediction_result(prediction_result)
+                    render_prediction_result(prediction_result, safety_result)
                 else:
                     st.write(
                         "Not yet executed. Submit the patient input form "
@@ -456,7 +577,7 @@ def render_agent_pipeline_scaffold(
                     )
             elif is_explainability:
                 if explainability_result is not None:
-                    render_explainability_result(explainability_result)
+                    render_explainability_result(explainability_result, safety_result)
                 else:
                     st.write(
                         "Not yet executed. Submit the patient input form "
@@ -472,15 +593,27 @@ def render_agent_pipeline_scaffold(
                         "above to run the earlier agents, which this "
                         "agent runs immediately after."
                     )
+            elif is_safety:
+                if safety_result is not None:
+                    render_safety_result(safety_result)
+                else:
+                    st.write(
+                        "Not yet executed. Submit the patient input form "
+                        "above to run the earlier agents, which this "
+                        "agent runs immediately after."
+                    )
             else:
                 st.write("Not yet implemented in this phase.")
 
             if agent_name == governance.mandatory_safety_control_point:
                 st.info(
-                    "This is the mandatory safety control point. Once "
-                    "implemented, downstream agents will be architecturally "
-                    "unable to present a clinical interpretation when this "
-                    "agent's safety gate is blocked."
+                    "This is the mandatory safety control point. Downstream "
+                    "agents (once implemented) are architecturally unable to "
+                    "present a clinical interpretation when this agent's "
+                    "safety decision blocks it — this is enforced above by "
+                    "gating the Prediction and Explainability sections on "
+                    "this agent's own flags, not only on their own internal "
+                    "ones."
                 )
 
 
@@ -566,10 +699,21 @@ def main() -> None:
         trust_fairness_result = run_trust_fairness_agent(input_quality_result, prediction_result)
         st.session_state["trust_fairness_result"] = trust_fairness_result
 
+        safety_result = run_safety_agent(
+            patient_record,
+            schema,
+            input_quality_result,
+            prediction_result,
+            explainability_result,
+            trust_fairness_result,
+        )
+        st.session_state["safety_result"] = safety_result
+
     input_quality_result = st.session_state.get("input_quality_result")
     prediction_result = st.session_state.get("prediction_result")
     explainability_result = st.session_state.get("explainability_result")
     trust_fairness_result = st.session_state.get("trust_fairness_result")
+    safety_result = st.session_state.get("safety_result")
 
     st.divider()
     render_agent_pipeline_scaffold(
@@ -578,6 +722,7 @@ def main() -> None:
         prediction_result,
         explainability_result,
         trust_fairness_result,
+        safety_result,
     )
     render_governance_notes(governance)
 
