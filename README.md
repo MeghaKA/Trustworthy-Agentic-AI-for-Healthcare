@@ -1,128 +1,100 @@
-# 🩺 Trustworthy Agentic AI for Explainable Healthcare Risk Prediction
+# Trustworthy Agentic AI for Healthcare
 
-## 📌 Overview
+### Explainable and Safety-Aware Clinical Decision Support using NHANES Data
 
-This project develops a **Trustworthy Agentic AI framework** for healthcare risk prediction using the **NHANES (National Health and Nutrition Examination Survey)** dataset.
+A research project exploring how **Explainable AI, trustworthy machine learning, safety governance, fairness evaluation, and multi-agent systems** can be combined to develop a transparent healthcare decision-support workflow.
 
-Unlike conventional machine learning systems, this project combines **predictive modelling, Explainable AI (XAI), and Agentic AI** to build an intelligent healthcare assistant capable of:
+The project uses **NHANES (National Health and Nutrition Examination Survey)** data and focuses on diabetes-related early-risk assessment, with emphasis on model interpretability, input quality, trustworthiness, and controlled clinical interpretation.
 
-- Predicting patient health risks
-- Explaining model predictions
-- Identifying important clinical risk factors
-- Providing transparent, evidence-based healthcare insights
-- Supporting trustworthy clinical decision making
-
-The long-term goal is to build an interpretable AI system that healthcare professionals can trust while maintaining transparency, accountability, and explainability.
+> **Research prototype:** This project is not a medical device and does not provide medical diagnosis, treatment recommendations, or autonomous clinical decisions.
 
 ---
 
-# 🎯 Research Objectives
-
-- Develop robust healthcare risk prediction models
-- Integrate Explainable AI (SHAP) for transparent predictions
-- Design an Agentic AI system capable of clinical reasoning
-- Generate personalised healthcare recommendations
-- Improve trustworthiness and interpretability of AI systems
-- Investigate responsible AI for healthcare decision support
-
----
-
-# 📂 Dataset
-
-**Source**
-
-National Health and Nutrition Examination Survey (NHANES)
-
-The dataset includes:
-
-- Demographic information
-- Body measurements
-- Laboratory biomarkers
-- Lifestyle factors
-- Clinical questionnaire responses
-- Medical history
-
----
-
-# 🏗️ Project Architecture
-
-NHANES Dataset
-↓
-Data Cleaning
-↓
-Feature Engineering
-↓
-Machine Learning Model
-↓
-Explainable AI (SHAP)
-↓
-Agentic AI Layer
-↓
-Healthcare Recommendation Agent
-
----
-
-# 🛠️ Technologies
-
-- Python
-- Pandas
-- NumPy
-- Scikit-learn
-- XGBoost
-- SHAP
-- LangChain
-- Large Language Models (LLMs)
-- Jupyter Notebook
-- Git & GitHub
-
----
-
-# 📁 Repository Structure
+## Research Workflow
 
 ```text
-Trustworthy-Agentic-AI-for-Healthcare/
+Data Integration
+      ↓
+Cohort & Target Definition
+      ↓
+Predictive Modelling
+      ↓
+Explainable AI
+      ↓
+Trust & Fairness Evaluation
+      ↓
+Explanation Consistency
+      ↓
+Clinical Decision Support
+      ↓
+Multi-Agent Healthcare Workflow
+      ↓
+Automated Research Audit
 
-│── data/
-│── notebooks/
-│── src/
-│── agents/
-│── models/
-│── reports/
-│── images/
-│── results/
-│── requirements.txt
-│── README.md
-```
+The workflow is developed through nine research notebooks (NB1–NB9) and progressively integrated into a Streamlit-based demonstrator.
 
----
+⸻
 
-# 🚀 Current Status
+###  Key Components
 
-- ✅ Repository Created
-- ✅ Dataset Collected
-- ⏳ Data Cleaning
-- ⏳ Exploratory Data Analysis
-- ⏳ Feature Engineering
-- ⏳ Predictive Modelling
-- ⏳ Explainable AI Integration
-- ⏳ Agentic AI Development
-- ⏳ Model Evaluation
-- ⏳ Research Paper Preparation
+* Machine Learning — locked Logistic Regression model for diabetes-related early-risk prediction
+* Explainable AI — deterministic feature-contribution analysis
+* Trust & Fairness — population-level performance and subgroup evaluation
+* Explanation Consistency — consistency analysis of model explanations
+* Safety Governance — explicit input, interpretation, and evidence gates
+* Multi-Agent Architecture — specialized agents for input quality, prediction, explainability, trust/fairness, and safety
+* Clinical Decision Support — governed presentation of technical model outputs
 
----
+⸻
 
-# 🎓 Research Focus
+###  Repository Structure
 
-This project is being developed as a research-oriented portfolio project focusing on:
+agents/          Research-level agent architecture
+data/            Data documentation and dataset structure
+demonstrator/    Streamlit research demonstrator
+images/          Selected research and system figures
+models/          Model artifacts and documentation
+notebooks/       NB1–NB9 research workflow
+results/         Selected research results and evidence
 
-- Trustworthy AI
-- Explainable AI
-- Agentic AI
-- Healthcare Decision Support
-- Responsible Artificial Intelligence
+### Data
 
----
+The project uses data from the National Health and Nutrition Examination Survey (NHANES) conducted by the U.S. National Center for Health Statistics (NCHS/CDC).
 
-# 📄 License
+Raw NHANES files and participant-level processed datasets are not redistributed in this repository. The notebooks document the data-processing and modelling workflow.
 
-MIT License
+⸻
+
+## Demonstrator
+
+A Streamlit-based research demonstrator operationalizes the audited workflow with:
+
+* input quality validation
+* locked model inference
+* deterministic explanations
+* trust and fairness evidence
+* safety governance
+* decision-support reporting
+
+The demonstrator does not retrain or modify the locked research model.
+
+⸻
+
+## Research Focus
+
+Trustworthy AI · Explainable AI · Healthcare AI · Clinical Decision Support · AI Safety · Fairness · Multi-Agent Systems
+
+⸻
+
+## Author
+
+Megha K A
+MSc Data Analytics | B.Tech Computer Science & Engineering
+
+Research interests: Trustworthy AI, Explainable AI, Healthcare AI, Clinical Decision Support, and AI Safety.
+
+⸻
+
+## License
+
+This project is licensed under the MIT License. See LICENSE⁠￼
