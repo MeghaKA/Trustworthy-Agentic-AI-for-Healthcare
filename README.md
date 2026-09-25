@@ -30,25 +30,27 @@ Clinical Decision Support
 Multi-Agent Healthcare Workflow
       ↓
 Automated Research Audit
+```
 
 The workflow is developed through nine research notebooks (NB1–NB9) and progressively integrated into a Streamlit-based demonstrator.
 
-⸻
+---
 
-###  Key Components
+## Key Components
 
-* Machine Learning — locked Logistic Regression model for diabetes-related early-risk prediction
-* Explainable AI — deterministic feature-contribution analysis
-* Trust & Fairness — population-level performance and subgroup evaluation
-* Explanation Consistency — consistency analysis of model explanations
-* Safety Governance — explicit input, interpretation, and evidence gates
-* Multi-Agent Architecture — specialized agents for input quality, prediction, explainability, trust/fairness, and safety
-* Clinical Decision Support — governed presentation of technical model outputs
+* **Machine Learning** — locked Logistic Regression model for diabetes-related early-risk prediction
+* **Explainable AI** — deterministic feature-contribution analysis
+* **Trust & Fairness** — population-level performance and subgroup evaluation
+* **Explanation Consistency** — consistency analysis of model explanations
+* **Safety Governance** — explicit input, interpretation, and evidence gates
+* **Multi-Agent Architecture** — specialized agents for input quality, prediction, explainability, trust/fairness, and safety
+* **Clinical Decision Support** — governed presentation of technical model outputs
 
-⸻
+---
 
-###  Repository Structure
+## Repository Structure
 
+```text
 agents/          Research-level agent architecture
 data/            Data documentation and dataset structure
 demonstrator/    Streamlit research demonstrator
@@ -56,14 +58,15 @@ images/          Selected research and system figures
 models/          Model artifacts and documentation
 notebooks/       NB1–NB9 research workflow
 results/         Selected research results and evidence
+```
 
-### Data
+## Data
 
 The project uses data from the National Health and Nutrition Examination Survey (NHANES) conducted by the U.S. National Center for Health Statistics (NCHS/CDC).
 
 Raw NHANES files and participant-level processed datasets are not redistributed in this repository. The notebooks document the data-processing and modelling workflow.
 
-⸻
+---
 
 ## Demonstrator
 
@@ -78,23 +81,24 @@ A Streamlit-based research demonstrator operationalizes the audited workflow wit
 
 The demonstrator does not retrain or modify the locked research model.
 
-⸻
+---
 
 ## Research Focus
 
 Trustworthy AI · Explainable AI · Healthcare AI · Clinical Decision Support · AI Safety · Fairness · Multi-Agent Systems
 
-⸻
+---
 
 ## Author
 
-Megha K A
+**Megha K A**
 MSc Data Analytics | B.Tech Computer Science & Engineering
 
 Research interests: Trustworthy AI, Explainable AI, Healthcare AI, Clinical Decision Support, and AI Safety.
 
-⸻
+---
 
 ## License
 
-This project is licensed under the MIT License. See LICENSE⁠￼
+This project is licensed under the MIT License. See [LICENSE](LICENSE).
+
