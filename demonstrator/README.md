@@ -1,7 +1,12 @@
 # Trustworthy Multi-Agent Healthcare AI Demonstrator
 
 **Research demonstrator — not for clinical use.**
-This application progressively operationalizes a locked, research-audited multi-agent clinical-AI workflow (Input/Data Quality → Prediction → Explainability → Trust & Fairness → Safety → CDS/Reporting → Orchestrator) developed and audited in notebooks NB3 and NB5–NB9. It is a UI/application layer only — it does not redesign, retrain, or reinterpret the underlying research.
+
+This application progressively operationalizes a locked, research-audited
+multi-agent clinical-AI workflow (Input/Data Quality → Prediction → Explainability →
+Trust & Fairness → Safety → CDS/Reporting → Orchestrator) developed and
+audited in notebooks NB3 and NB5–NB9. It is a UI/application layer only —
+it does not redesign, retrain, or reinterpret the underlying research.
 
 ## What this is not
 
@@ -35,6 +40,7 @@ Input Quality Agent
     -> Explainability Agent
     -> Trust/Fairness Agent
     -> Safety Agent
+    -> CDS/Reporting Agent
     -> Display
 ```
 
@@ -59,11 +65,18 @@ purposes:
 
 ## Status
 
-**Phases 1–6 of 9 implemented** — artifact loading/integrity, patient
+**Phases 1–7 of 9 implemented** — artifact loading/integrity, patient
 input form, Input/Data Quality Agent, Prediction Agent, Explainability
-Agent, Trust/Fairness Agent, and the Safety Agent (mandatory governance
-control point). CDS/Reporting and the Orchestrator (Phases 7–8) are not
-yet implemented.
+Agent, Trust/Fairness Agent, Safety Agent (mandatory governance control
+point), and the CDS/Reporting Agent (decision-support report assembly).
+The current implemented workflow is:
+
+```
+Input/Data Quality -> Prediction -> Explainability -> Trust & Fairness
+    -> Safety -> CDS/Reporting
+```
+
+The Agentic Orchestrator (Phase 8) is not yet implemented.
 
 ## Running locally
 
@@ -86,6 +99,7 @@ backend/
     explainability_agent.py  Phase 4 — additive logistic coefficient decomposition
     trust_fairness_agent.py  Phase 5 — static NB5/NB6 population-level evidence
     safety_agent.py           Phase 6 — final governance/display gate
+    cds_reporting_agent.py    Phase 7 — decision-support report assembly
 ui/
   patient_input_form.py   Structured Streamlit form (30-field curated subset)
 artifacts/
@@ -93,7 +107,5 @@ artifacts/
   metadata/                NB3 model metadata (authoritative threshold source)
   schema/                  Locked 214-feature schema CSV (verbatim from NB7 export)
   evidence/                Static NB5/NB6 population-level evidence CSVs (verbatim)
-research/                Full notebooks + evidence (not imported at runtime) — added later
-tests/                   (added in Phase 9)
 app.py                   Streamlit entrypoint
 ```
