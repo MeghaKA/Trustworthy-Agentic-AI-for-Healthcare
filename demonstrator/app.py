@@ -21,9 +21,14 @@ PHASES 1–4 IMPLEMENTED:
     Trust/Fairness Agent. Its flags now gate what the Prediction and
     Explainability sections display, so it cannot be bypassed through
     the normal UI workflow.
+  - Phase 7: The CDS/Reporting Agent (pure presentation/reporting layer;
+    assembles a deterministic decision_support_report from the already-
+    governed upstream results; never recomputes a value and never
+    overrides a Safety Agent flag), chained immediately after the
+    Safety Agent.
 
-CDS/Reporting and the Orchestrator (Phases 7–8) are not yet implemented
-and remain placeholders in the pipeline scaffold below.
+The Agentic Orchestrator (Phase 8) is not yet implemented and remains a
+placeholder in the pipeline scaffold below.
 """
 
 from __future__ import annotations
@@ -38,6 +43,7 @@ from backend.agents.prediction_agent import PredictionResult, run_prediction_age
 from backend.agents.explainability_agent import ExplainabilityResult, run_explainability_agent
 from backend.agents.trust_fairness_agent import TrustFairnessResult, run_trust_fairness_agent
 from backend.agents.safety_agent import SafetyResult, run_safety_agent
+from backend.agents.cds_reporting_agent import CDSReportingResult, run_cds_reporting_agent
 from ui.patient_input_form import render_patient_input_form
 
 
@@ -515,6 +521,112 @@ def render_safety_result(result: SafetyResult) -> None:
         st.json(r)
 
 
+def render_cds_report(result: CDSReportingResult) -> None:
+    r = result.report
+
+    st.success("CDS/Reporting Agent executed. Decision-support report generated.")
+
+    st.markdown("**1. Assessment Overview**")
+    overview = r["assessment_overview"]
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Prediction available", str(overview["prediction_available"]))
+    col2.metric("Explanation available", str(overview["explanation_available"]))
+    col3.metric("Clinical interpretation available", str(overview["clinical_interpretation_available"]))
+    st.write(f"Safety decision: `{overview['safety_decision']}`  ·  Threshold: `{overview['threshold']}`")
+
+    st.markdown("**2. Input Quality**")
+    iq_section = r["input_quality"]
+    st.write(
+        f"Model-input completeness: **{iq_section['overall_model_input_completeness'] * 100:.2f}%**  ·  "
+        f"Clinical measurement completeness: **{iq_section['clinical_measurement_completeness'] * 100:.2f}%**  ·  "
+        f"Quality status: `{iq_section['quality_status']}`"
+    )
+    if iq_section["clinical_measurements_missing"]:
+        st.write("Missing clinical measurements: " + ", ".join(iq_section["clinical_measurements_missing"]))
+
+    st.markdown("**3. Technical Model Output**")
+    tech_pred = r["technical_model_output"]
+    if tech_pred["technical_prediction_allowed"]:
+        st.write(
+            f"Model-estimated probability: **{tech_pred['model_estimated_probability']:.4f}**  ·  "
+            f"Threshold: `{tech_pred['threshold']}`  ·  "
+            f"Technical model classification: `{tech_pred['technical_model_classification']}`"
+        )
+        st.caption(tech_pred["disclaimer"])
+    else:
+        st.warning(tech_pred["message"])
+
+    st.markdown("**4. Model Explanation**")
+    expl_section = r["model_explanation"]
+    if expl_section["technical_explanation_allowed"]:
+        st.caption(expl_section["note_on_language"])
+        st.write(f"Reconstruction error: `{expl_section['reconstruction_error']:.2e}`")
+        c1, c2 = st.columns(2)
+        with c1:
+            st.write("Top positive model contributions")
+            st.dataframe(
+                [
+                    {"feature": c["feature_label"], "model_contribution": c["model_contribution"]}
+                    for c in expl_section["top_positive_model_contributions"]
+                ],
+                use_container_width=True,
+                hide_index=True,
+            )
+        with c2:
+            st.write("Top negative model contributions")
+            st.dataframe(
+                [
+                    {"feature": c["feature_label"], "model_contribution": c["model_contribution"]}
+                    for c in expl_section["top_negative_model_contributions"]
+                ],
+                use_container_width=True,
+                hide_index=True,
+            )
+        st.warning(expl_section["observed_missing_imputed_note"])
+    else:
+        st.warning(expl_section["message"])
+
+    st.markdown("**5. Trust & Fairness Evidence**")
+    tf_section = r["trust_fairness_evidence"]
+    st.write(
+        f"This session: `{tf_section['current_session_status']}`  ·  "
+        f"Static reference: `{tf_section['static_reference_status']}`"
+    )
+    for b in tf_section["boundaries"]:
+        st.caption(f"- {b}")
+
+    st.markdown("**6. Safety & Governance**")
+    st.write(f"`{r['safety_governance']['audit_summary']}`")
+
+    st.markdown("**7. Decision-Support Interpretation**")
+    interp = r["decision_support_interpretation"]
+    if interp["clinical_interpretation_provided"]:
+        st.success(interp["statement"])
+        st.caption(interp["clinical_gate_disclaimer"])
+    else:
+        st.error(interp["statement"])
+        st.write("Reasons: " + ", ".join(interp["reason_codes"]))
+
+    st.markdown("**8. Limitations**")
+    for item in r["limitations"]:
+        st.write(f"- {item}")
+
+    st.markdown("**9. Audit Information**")
+    st.json(r["audit_information"])
+
+    with st.expander("Full structured decision_support_report (JSON contract)"):
+        st.json(r)
+
+    import json as _json
+
+    st.download_button(
+        "Download decision_support_report (JSON)",
+        data=_json.dumps(result.as_dict, indent=2, default=str),
+        file_name="decision_support_report.json",
+        mime="application/json",
+    )
+
+
 def render_agent_pipeline_scaffold(
     governance: Governance,
     input_quality_result: InputQualityResult | None,
@@ -522,6 +634,7 @@ def render_agent_pipeline_scaffold(
     explainability_result: ExplainabilityResult | None,
     trust_fairness_result: TrustFairnessResult | None,
     safety_result: SafetyResult | None,
+    cds_reporting_result: CDSReportingResult | None,
 ) -> None:
     st.subheader("Seven-Agent Workflow")
     st.caption(
@@ -535,7 +648,7 @@ def render_agent_pipeline_scaffold(
         "Explainability Agent": "Phase 4",
         "Trust & Fairness Agent": "Phase 5",
         "Safety Agent": "Phase 6 — mandatory control point",
-        "CDS/Reporting Agent": "Phase 7 (not yet implemented)",
+        "CDS/Reporting Agent": "Phase 7",
         "Agentic Orchestrator": "Phase 8 (not yet implemented)",
     }
 
@@ -545,12 +658,14 @@ def render_agent_pipeline_scaffold(
         is_explainability = agent_name == "Explainability Agent"
         is_trust_fairness = agent_name == "Trust & Fairness Agent"
         is_safety = agent_name == "Safety Agent"
+        is_cds_reporting = agent_name == "CDS/Reporting Agent"
         has_result = (
             (is_input_quality and input_quality_result is not None)
             or (is_prediction and prediction_result is not None)
             or (is_explainability and explainability_result is not None)
             or (is_trust_fairness and trust_fairness_result is not None)
             or (is_safety and safety_result is not None)
+            or (is_cds_reporting and cds_reporting_result is not None)
         )
         icon = "✅" if has_result else "🔲"
 
@@ -602,6 +717,15 @@ def render_agent_pipeline_scaffold(
                         "above to run the earlier agents, which this "
                         "agent runs immediately after."
                     )
+            elif is_cds_reporting:
+                if cds_reporting_result is not None:
+                    render_cds_report(cds_reporting_result)
+                else:
+                    st.write(
+                        "Not yet executed. Submit the patient input form "
+                        "above to run the earlier agents, which this "
+                        "agent runs immediately after."
+                    )
             else:
                 st.write("Not yet implemented in this phase.")
 
@@ -637,8 +761,8 @@ def main() -> None:
 
     st.title(governance.project_name)
     st.write(
-        "This is a research demonstrator that operationalizes a validated, "
-        "locked, seven-agent clinical-AI workflow. It does not diagnose, "
+        "This is a research demonstrator that operationalizes a locked, "
+        "research-audited clinical-AI workflow. It does not diagnose, "
         "treat, or produce a calibrated individual clinical risk estimate."
     )
 
@@ -709,11 +833,23 @@ def main() -> None:
         )
         st.session_state["safety_result"] = safety_result
 
+        cds_reporting_result = run_cds_reporting_agent(
+            governance,
+            schema,
+            input_quality_result,
+            prediction_result,
+            explainability_result,
+            trust_fairness_result,
+            safety_result,
+        )
+        st.session_state["cds_reporting_result"] = cds_reporting_result
+
     input_quality_result = st.session_state.get("input_quality_result")
     prediction_result = st.session_state.get("prediction_result")
     explainability_result = st.session_state.get("explainability_result")
     trust_fairness_result = st.session_state.get("trust_fairness_result")
     safety_result = st.session_state.get("safety_result")
+    cds_reporting_result = st.session_state.get("cds_reporting_result")
 
     st.divider()
     render_agent_pipeline_scaffold(
@@ -723,6 +859,7 @@ def main() -> None:
         explainability_result,
         trust_fairness_result,
         safety_result,
+        cds_reporting_result,
     )
     render_governance_notes(governance)
 
