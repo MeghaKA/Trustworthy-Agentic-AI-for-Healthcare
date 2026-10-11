@@ -58,9 +58,15 @@ See data/raw/README.md for information about the source files and data/processed
 
 ## Research Demonstrator
 
-The Streamlit demonstrator integrates the locked model and preprocessing pipeline with input-quality checks, deterministic feature contributions, trust and fairness evidence, safety gates, and structured reporting.
+Explore the live Streamlit application:
+
+https://agentichealthcare.streamlit.app
+
+The demonstrator integrates the locked machine learning model with input-quality checks, feature-contribution explanations, trust and fairness evidence, safety gates, and structured reporting.
 
 The application uses the existing model artifacts and does not retrain the model during inference.
+
+> **Note:** This is a research prototype for demonstration and educational purposes, not a clinically validated diagnostic tool.
 
 ## Explainability Methods
 
