@@ -80,4 +80,4 @@ Research interests: Trustworthy AI, Explainable AI, Healthcare AI, Clinical Deci
 
 ## License
 
-This project is licensed under the MIT License(LICENSE).
+This project is licensed under the [MIT License](LICENSE).
