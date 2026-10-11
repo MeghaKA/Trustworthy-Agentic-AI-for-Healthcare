@@ -1,106 +1,83 @@
 # Trustworthy Agentic AI for Healthcare
 
-### Explainable and Safety-Aware Clinical Decision Support Using NHANES Data
+## Explainable and Safety-Aware Clinical Decision Support Using NHANES Data
 
-<p align="left">
-  <img src="https://img.shields.io/badge/Python-3.13-blue?logo=python&logoColor=white" alt="Python 3.13"/>
-  <img src="https://img.shields.io/badge/Framework-Streamlit-FF4B4B?logo=streamlit&logoColor=white" alt="Streamlit"/>
-  <img src="https://img.shields.io/badge/AI-Explainable%20%26%20Trustworthy-5B6DAA" alt="Explainable and Trustworthy AI"/>
-  <img src="https://img.shields.io/badge/Research-Healthcare%20AI-287D8E" alt="Healthcare AI Research"/>
-  <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License"/>
-</p>
+A research project exploring how explainable machine learning, trustworthiness evaluation, safety governance, and multi-agent systems can support transparent healthcare decision-making workflows.
 
-A research project investigating how *explainable machine learning, trustworthiness evaluation, safety governance, fairness analysis, and multi-agent systems* can support transparent healthcare decision-support workflows.
+The project uses data from the *National Health and Nutrition Examination Survey (NHANES)* and focuses on diabetes-related early-risk prediction, model interpretability, input quality, fairness, and controlled clinical interpretation.
 
-Using public-use data from the *National Health and Nutrition Examination Survey (NHANES)* the project focuses on diabetes-related early-risk prediction and the responsible interpretation of model outputs.
-
-*Research prototype:* This project is not a clinically validated diagnostic system, medical device, or substitute for professional medical judgement. Its outputs must not be used independently for diagnosis or treatment decisions.
-
-⸻
+>**Research prototype**: This project is not a clinically validated diagnostic system. Its outputs are not medical diagnoses or treatment recommendations.
 
 ## Research Workflow
 
-The research is organized into nine notebooks (NB1–NB9), progressing from data preparation to end-to-end system validation.
+Data Integration
+      ↓
+Cohort and Feature Engineering
+      ↓
+Predictive Modelling
+      ↓
+Explainable AI
+      ↓
+Trust and Fairness Evaluation
+      ↓
+Explanation Consistency
+      ↓
+Clinical Decision-Support Prototype
+      ↓
+Multi-Agent Workflow
+      ↓
+End-to-End Validation
 
-Stage	Research component
-NB1	Data integration and preprocessing
-NB2	Cohort definition and feature engineering
-NB3	Predictive modelling and clinical performance evaluation
-NB4	Explainable AI and patient-level interpretation
-NB5	Trust, fairness, and safety evaluation
-NB6	Explainability consistency framework
-NB7	Clinical decision-support prototype
-NB8	Trustworthy multi-agent workflow
-NB9	Automated integration and integrity audit
-
-The validated research workflow is integrated into a Streamlit-based demonstrator.
+The research is organized into nine notebooks (NB1–NB9), progressively developed into a Streamlit-based demonstrator.
 
 ## Key Components
 
-* Predictive modelling: A locked logistic regression model with a fixed preprocessing pipeline and documented decision threshold.
-* Explainable AI: Feature-importance exploration and deterministic model-contribution analysis.
-* Trust and fairness: Aggregate model-performance and subgroup evaluations.
-* Explanation consistency: Assessment of explanation similarity and stability.
-* Safety governance: Input-quality checks, controlled interpretation, and evidence-based reporting gates.
-* Multi-agent architecture: Specialized agents for input quality, prediction, explainability, trust and fairness, safety, and reporting.
-* System validation: Automated integration checks and model-integrity verification.
+* *Predictive Modelling*: Locked Logistic Regression model for diabetes-related early-risk prediction.
+* *Explainable AI*: Feature-contribution analysis and model interpretation.
+* *Trust and Fairness*: Population-level performance and subgroup evaluation.
+* *Explanation Consistency*: Analysis of explanation stability and consistency.
+* *Safety Governance*: Input validation, interpretation gates, and evidence checks.
+* *Multi-Agent Workflow*: Coordinated agents for prediction, explainability, trust evaluation, and safety.
+* *Decision-Support Reporting*: Structured presentation of model outputs and supporting evidence.
 
-## Explainability Methods
+## Repository Structure
 
-Notebook 4 explores SHAP-based feature-importance consistency. Notebook 6 and the deployed demonstrator use an exact logistic-regression coefficient-by-transformed-feature contribution decomposition.
-
-These are distinct methods. The deployed demonstrator’s contribution analysis is not SHAP, and explanation consistency alone does not establish clinical validity.
-
-Demonstrator
-
-The Streamlit application brings the research components together in a governed workflow, including:
-
-* Input-quality validation
-* Locked model inference
-* Deterministic explanation reconstruction
-* Reference-based trust and fairness evidence
-* Safety-gated interpretation
-* Decision-support reporting
-
-The demonstrator does not retrain the locked model. Model outputs are technical predictions, not established individual clinical-risk estimates.
-
-Repository Structure
-
-data/
-├── raw/              # NHANES source files and provenance
-└── processed/        # Processing documentation
-demonstrator/
-├── artifacts/        # Locked model, preprocessor, metadata and schema
-├── backend/          # Model and governance agents
-├── config/           # Governance configuration
-└── ui/               # Patient-input interface
-images/               # Selected research figures
-notebooks/            # Nine-stage research workflow
-results/              # Selected research evidence
+data/             Raw data and data documentation
+demonstrator/     Streamlit application and supporting artifacts
+images/           Selected research figures
+notebooks/        Nine-stage research workflow (NB1–NB9)
+results/          Selected research evidence and validation outputs
 
 ## Data Source
 
-The project uses public-use NHANES 2017–March 2020 Pre-Pandemic data provided by the U.S. National Center for Health Statistics (NCHS), part of the Centers for Disease Control and Prevention (CDC).
+The project uses public-use NHANES data from the *2017–March 2020 Pre-Pandemic cycle,* provided by the U.S. National Center for Health Statistics (NCHS), part of the Centers for Disease Control and Prevention (CDC).
 
-* Official NHANES data and documentation
-* data/raw/README.md — Source files and provenance
-* data/processed/README.md — Processing documentation
+Official source: https://wwwn.cdc.gov/nchs/nhanes/search/datapage.aspx
 
-The notebooks document the data-processing workflow. Generated participant-level datasets and intermediate outputs are not committed to the repository.
+See data/raw/README.md for information about the source files and data/processed/README.md for the processing workflow.
 
-Research Interests
+## Research Demonstrator
 
-Trustworthy AI · Explainable AI · Healthcare AI · Clinical Decision Support · AI Safety · Fairness · Multi-Agent Systems
+The Streamlit demonstrator integrates the locked model and preprocessing pipeline with input-quality checks, deterministic feature contributions, trust and fairness evidence, safety gates, and structured reporting.
 
-Author
+The application uses the existing model artifacts and does not retrain the model during inference.
 
-Megha K A
+## Explainability Methods
+
+Notebook 4 explores SHAP-based feature-importance consistency. Notebook 6 and the deployed demonstrator use an exact Logistic Regression coefficient-by-transformed-feature contribution decomposition. These are distinct methods and are documented separately.
+
+## Limitations and Responsible Use
+
+This project is a research prototype, not a medical device or clinically validated decision-support system. Model outputs should not be interpreted as confirmed individual clinical risks. The model does not independently establish a diagnosis or recommend treatment.
+
+## Author
+
+*Megha K A*
 
 MSc Data Analytics · B.Tech Computer Science and Engineering
 
 Research interests: Trustworthy AI, Explainable AI, Healthcare AI, Clinical Decision Support, and AI Safety.
 
-License
+## License
 
-This project is licensed under the MIT License.
-
+This project is licensed under the MIT License. See LICENSE.
