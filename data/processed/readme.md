@@ -1,5 +1,7 @@
 # Processed Data
 
-This directory is reserved for datasets generated during preprocessing, integration, feature engineering, and cohort construction.
+This directory is reserved for datasets generated during the research workflow.
 
-Participant-level processed datasets are intentionally excluded from this public repository for privacy, data-governance, and reproducibility reasons.
+Notebook 1 integrates the raw NHANES source files and produces the master dataset. Subsequent notebooks perform cohort definition, feature engineering, predictive modelling, explainability, trust and fairness evaluation, and integration testing.
+
+Generated participant-level datasets and intermediate outputs are not committed here. See the notebooks for the processing workflow and the main repository README for the project overview.
